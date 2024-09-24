@@ -1,0 +1,6 @@
+# Example .gitignore
+/node_modules
+.env
+/dist
+/build
+/coverage
