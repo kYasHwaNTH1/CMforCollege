@@ -3,7 +3,9 @@ const cors=require('cors')
 const mongoose=require('mongoose')
 const app=express()
 require('dotenv').config()
-
+const {userRouter}=require('./Routes/user')
+const {adminRouter}=require('./Routes/admin')
+const {technicianRouter}=require('./Routes/technician')
 
 app.use(express.json())
 app.use(cors())

@@ -1,7 +1,7 @@
 const {Router}=require('express')
 const adminRouter=Router()
 const {AdminModel,IssuesModel}=require('../schema')
-const validschema=require('../Validation')
+const validschema=require('../Validation/uservalid')
 const adminauth=require('../Authentication/adminauth')
 const passkey=process.env.ADMINSECURE
 

@@ -1,7 +1,7 @@
 const {Router}=require('express')
 const technicianRouter=Router()
 const {TechnicianModel,IssuesModel}=require('../schema')
-const validschema=require('../Validation')
+const validschema=require('../Validation/uservalid')
 const technicianauth=require('../Authentication/technicianauth')
 const passkey=process.env.TECHNICIANSECURE
 
