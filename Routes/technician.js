@@ -54,11 +54,35 @@ catch(err){
 technicianRouter.use(technicianauth)
 
 technicianRouter.put('/changepassword',async(req,res)=>{
-    res.json({msg:"change password endpoint"})
+    const newpassword=req.body.newpassword
+    const technicianid=req.id;
+    try{
+    const user=await AdminModel.findOne({_id:technicianid})
+    
+    if(!user){
+       return res.status(404).json({msg:"User not found"})
+    }
+    if(user.password!==oldpassword){
+       return res.status(401).json({msg:"Incorrect old password"})
+    }
+    user.password = newpassword;
+    await user.save();
+    res.json({msg:"Password has been changed successfully"})
+   }
+   catch(err){
+       res.status(500).json({msg:err.message})
+    }
 })
 
 technicianRouter.get('/myissues',async(req,res)=>{
-    res.json({msg:"myissues endpoint"})
+        const id=req.id;
+        try{
+        const issues=await IssuesModel.findById({technicianid:id})
+        res.json(issues)
+        }
+        catch(err){
+        res.status(500).json({msg:err.message})
+        }
 })
 
 module.exports={technicianRouter}
