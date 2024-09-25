@@ -1,7 +1,7 @@
 const {Router} =require('express')
 const userauth = require('../Authentication/userauth')
 const validschema=require('../Validation/uservalid')
-const {UserModel,IssuesModel}=require('../schema')
+const {UserModel,IssuesModel,TechnicianModel}=require('../schema')
 const userRouter=Router()
 const jwt=require('jsonwebtoken')
 const passkey=process.env.USERSECURE
@@ -55,15 +55,74 @@ userRouter.post('/signin',async(req,res)=>{
 userRouter.use(userauth)
 
 userRouter.post('/issueform',async(req,res)=>{
-    res.json({msg:"issueform endpoint"})
+        const userid=req.id
+        const branch=req.body.branch
+        const lab=req.body.lab
+        const location=req.body.location
+        const issuetype=req.body.issuetype
+        const exactissue=req.body.exactissue
+try{
+       const technician=await TechnicianModel.findOne({
+        workbench:issuetype
+       }).sort({workload:1})
+       .exec()
+
+       if(!technician){
+        return res.status(404).json({msg:"No technician found "})
+       }
+       IssuesModel.create({
+        branch:branch,
+        lab:lab,
+        location:location,
+        issuetype:issuetype,
+        exactissue:exactissue,
+        stateoftheissue:false,
+        userid:userid,
+        technicianid:technician._id
+       })
+
+       res.json({msg:"Your Issue has been created successfully"})
+    }
+    catch(err){
+        res.status(500).json({msg:err.message})
+    }
+
 })
 
 userRouter.put('/changepassword',async(req,res)=>{
-    res.json({msg:"change password endpoint"})
+     const oldpassword=req.body.oldpassword
+     const newpassword=req.body.newpassword
+     const userid=req.id;
+     try{
+     const user=await UserModel.findOne({_id:userid})
+     
+     if(!user){
+        return res.status(404).json({msg:"User not found"})
+     }
+     if(user.password!==oldpassword){
+        return res.status(401).json({msg:"Incorrect old password"})
+     }
+     user.password = newpassword;
+     await user.save();
+     res.json({msg:"Password has been changed successfully"})
+    }
+    catch(err){
+        res.status(500).json({msg:err.message})
+     }
 })
 
 userRouter.get('/myissues',async(req,res)=>{
-    res.json({msg:"myissues endpoint"})
+    const userid=req.id;
+    try{
+        const issues= await IssuesModel.findOne({_id:userid})
+        if(!issues){
+            return res.status(404).json({msg:"No issues found"})
+        }
+        res.json(issues)
+    }
+    catch(err){
+        res.status(500).json({msg:err.message})
+    }
 })
 
 module.exports={userRouter}

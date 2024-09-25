@@ -19,7 +19,9 @@ const TechnicianSchema=new Schema({
     firstname:String,
     lastname:String,
     email:{type:String,unique:true},
-    password:String
+    password:String,
+    workload:Number,
+    workbench:String
 })
 
 const IssueSchema=new Schema({

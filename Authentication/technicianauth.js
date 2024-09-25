@@ -7,7 +7,7 @@ function technicianauth(req,res,next){
   }
   const technicianid=jwt.verify(token,passkey);
   if(userid){
-     req.id=technicianid;
+     req.id=technicianid._id;
   }
 next()
 }
