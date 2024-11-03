@@ -1,9 +1,10 @@
 const {Router}=require('express')
 const adminRouter=Router()
-const {AdminModel,IssuesModel}=require('../schema')
+const {AdminModel,IssuesModel, TechnicianModel}=require('../schema')
 const validschema=require('../Validation/uservalid')
 const adminauth=require('../Authentication/adminauth')
 const technicianauth = require('../Authentication/technicianauth')
+const jwt=require('jsonwebtoken')
 const passkey=process.env.ADMINSECURE
 
 adminRouter.post('/signup',async(req,res)=>{
@@ -25,26 +26,35 @@ adminRouter.post('/signup',async(req,res)=>{
         firstname:firstname,
         lastname:lastname,
         email:email,
-        password:password
+        password:password,
+        role:"admin"
     })
-    res.status(201).json({msg:"signup successful"})
+    res.status(201).json({ success: true });
+
 }
 catch(err){
-    res.status(500).json({msg:err.message})
+    res.status(500).json({msg:err})
 }
 })
+
 adminRouter.post('/signin',async(req,res)=>{
     const email = req.body.email
     const password = req.body.password
     const role=req.body.role
+    console.log(req.body)
     try{
-    if(role=="admin"){
+    if(role==="admin"){
         const user=await AdminModel.findOne({email:email, password:password})
         if(!user){
             return res.status(401).json({msg:"Invalid email or password"})
         }
          const token=jwt.sign({id:user._id},passkey);
-         res.json({token:token,msg:"Login successful"})
+         const firstname=user.firstname;
+         const lastname=user.lastname;
+         res.status(200).json({token:token,firstname:firstname,lastname:lastname})
+    }
+    else{
+        res.status(400).send("NO USER ")
     }
 }
 catch(err){
@@ -53,12 +63,13 @@ catch(err){
 })
 
 adminRouter.use(adminauth)
+
 adminRouter.put('/changepassword',async(req,res)=>{
     const oldpassword=req.body.oldpassword
     const newpassword=req.body.newpassword
-    const technicianid=req.id;
+    const adminid=req.id;
     try{
-    const user=await AdminModel.findOne({_id:technicianid})
+    const user=await AdminModel.findOne({_id:adminid})
     
     if(!user){
        return res.status(404).json({msg:"User not found"})
@@ -68,40 +79,68 @@ adminRouter.put('/changepassword',async(req,res)=>{
     }
     user.password = newpassword;
     await user.save();
-    res.json({msg:"Password has been changed successfully"})
+    res.status(201).json({ success: true });
    }
    catch(err){
        res.status(500).json({msg:err.message})
     }
 })
 
-adminRouter.put('/issues',async(req,res)=>{
-    //can change assigned technician 
-    const adminid=req.id;
-    const issueid=req.body.issueid;
-    const newtechnicianid=req.body.technicianid;
-   try{
-    const issue=await IssuesModel.findOneAndDelete({_id:issueid})
-    if(!issue){
-       return res.status(404).json({msg:"Issue not found"})
-    }
-    issue.technicianid = newtechnicianid;
-    await issue.save();
-   }
-catch(err){
-    res.status(500).json({msg:err.message})
-}
-})
-
-
-adminRouter.get('/allissues',async(req,res)=>{
-    const condition=req.body;
+adminRouter.get('/gettechnicians',async(req,res)=>{
     try{
-    const issues=await IssuesModel.find({condition})
-    res.json(issues)
+        const technicians=await TechnicianModel.find({});
+        if(!technicians){
+            return res.status(404).json({msg:"No technicians found"})
+        }
+        console.log(technicians)
+        res.send(technicians)
+    }
+    catch(err){
+       res.status(500).json({msg:err.message})
+    }
+})
+adminRouter.get('/technicianissues/:id',async(req,res)=>{
+    const id=req.params.id;
+    try{
+        const technicianid=await TechnicianModel.find({_id:id})
+    const issues=await IssuesModel.find({technicianid:technicianid})
+    console.log(issues)
+    res.send(issues)
     }
     catch(err){
     res.status(500).json({msg:err.message})
+    }
+})
+
+adminRouter.get('/myissues',async(req,res)=>{
+   
+    try{
+    const issues=await IssuesModel.find({})
+    console.log(issues)
+    res.send(issues)
+    }
+    catch(err){
+    res.status(500).json({msg:err.message})
+    }
+})
+
+adminRouter.put('/changestatus',async(req,res)=>{
+    const id=req.id;
+    try{
+        const issueid=req.headers.issueid;
+        const issue=await IssuesModel.findById({_id:issueid})
+        if(!issue){
+            return res.status(404).json({msg:"Issue not found"})
+        }
+        issue.stateoftheissue = !issue.stateoftheissue;
+        
+
+        await issue.save();
+
+        res.json({success:true});
+    }
+    catch(err){
+        return res.status(500).json({ msg: err.message });
     }
 })
 

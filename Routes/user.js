@@ -25,9 +25,11 @@ userRouter.post('/signup',async(req,res)=>{
             firstname:firstname,
             lastname:lastname,
             email:email,
-            password:password
+            password:password,
+            role:"user"
         })
-        res.status(201).json({msg:"signup successful"})
+        res.status(201).json({ success: true });
+
     }
     catch(err){
         res.status(500).json({msg:err.message})
@@ -37,14 +39,17 @@ userRouter.post('/signin',async(req,res)=>{
         const email = req.body.email
         const password = req.body.password
         const role=req.body.role
+        console.log(req.body)
         try{
-        if(role=="user"){
+        if(role=="users"){
             const user=await UserModel.findOne({email:email, password:password})
             if(!user){
                 return res.status(401).json({msg:"Invalid email or password"})
             }
              const token=jwt.sign({id:user._id},passkey);
-             res.json({token:token,msg:"Login successful"})
+             const firstname=user.firstname;
+             const lastname=user.lastname;
+             res.status(200).json({token:token,firstname:firstname,lastname:lastname})
         }
     }
     catch(err){
@@ -66,11 +71,12 @@ try{
         workbench:issuetype
        }).sort({workload:1})
        .exec()
-
+technician.workload++;
+await technician.save()
        if(!technician){
         return res.status(404).json({msg:"No technician found "})
        }
-       IssuesModel.create({
+     await  IssuesModel.create({
         branch:branch,
         lab:lab,
         location:location,
@@ -81,7 +87,7 @@ try{
         technicianid:technician._id
        })
 
-       res.json({msg:"Your Issue has been created successfully"})
+       res.json({success:true})
     }
     catch(err){
         res.status(500).json({msg:err.message})
@@ -102,9 +108,10 @@ userRouter.put('/changepassword',async(req,res)=>{
      if(user.password!==oldpassword){
         return res.status(401).json({msg:"Incorrect old password"})
      }
+     console.log(newpassword)
      user.password = newpassword;
      await user.save();
-     res.json({msg:"Password has been changed successfully"})
+     res.json({success:true})
     }
     catch(err){
         res.status(500).json({msg:err.message})
@@ -114,11 +121,12 @@ userRouter.put('/changepassword',async(req,res)=>{
 userRouter.get('/myissues',async(req,res)=>{
     const userid=req.id;
     try{
-        const issues= await IssuesModel.findOne({_id:userid})
+        const issues= await IssuesModel.find({userid:userid})
         if(!issues){
             return res.status(404).json({msg:"No issues found"})
         }
-        res.json(issues)
+        console.log(issues)
+        res.send(issues)
     }
     catch(err){
         res.status(500).json({msg:err.message})

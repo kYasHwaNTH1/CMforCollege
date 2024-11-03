@@ -1,5 +1,6 @@
 const mongoose=require('mongoose');
 const { type } = require('os');
+const { boolean } = require('zod');
 const Schema=mongoose.Schema
 const ObjectId= mongoose.Types.ObjectId;
 
@@ -7,13 +8,15 @@ const UserSchema=new Schema({
     firstname:String,
     lastname:String,
     email:{type:String,unique:true},
-    password:String
+    password:String,
+    role:String
 })
 const AdminSchema=new Schema({
     firstname:String,
     lastname:String,
     email:{type:String,unique:true},
-    password:String
+    password:String,
+    role:String
 })
 const TechnicianSchema=new Schema({
     firstname:String,
@@ -21,7 +24,8 @@ const TechnicianSchema=new Schema({
     email:{type:String,unique:true},
     password:String,
     workload:Number,
-    workbench:String
+    workbench:String,
+    role:String
 })
 
 const IssueSchema=new Schema({
@@ -30,7 +34,7 @@ const IssueSchema=new Schema({
     location:String,
     issuetype:String,
     exactissue:String,
-    stateoftheissue:{type:String,default:false},
+    stateoftheissue:{type:Boolean,default:false},
     userid:ObjectId,
     technicianid:ObjectId
 })

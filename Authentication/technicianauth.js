@@ -6,7 +6,7 @@ function technicianauth(req,res,next){
     return res.status(401).send("Invalid token")
   }
   const technicianid=jwt.verify(token,passkey);
-  if(userid){
+  if(technicianid){
      req.id=technicianid.id;
   }
 next()
